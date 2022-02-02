@@ -6,10 +6,12 @@ db = connect_db()
 
 class Address(db.Entity):
     _table_ = "addresses"
+    address_id = PrimaryKey(int, auto=True)
 
     chainid = Required(int)
     address = Required(str)
-    PrimaryKey(chainid,address)
+    composite_key(chainid, address)
+
     is_contract = Required(bool)
     nickname = Optional(str)
 
@@ -18,23 +20,26 @@ class Address(db.Entity):
 
 class Token(db.Entity):
     _table_ = "tokens"
+    token_id = PrimaryKey(int, auto=True)
 
-    token = PrimaryKey(Address, columns=["chainid",'token_address'])
     symbol = Required(str)
     name = Required(str)
     decimals = Required(int)
 
     user_tx = Set('UserTx', reverse="vault")
+    address = Required(Address, column="address_id")
     
 
 class UserTx(db.Entity):
     _table_ = "user_txs"
+    user_tx_id = PrimaryKey(int, auto=True)
 
     timestamp = Required(int)
     block = Required(int)
     hash = Required(str)
     log_index = Required(int)
-    vault = Required(Token, columns=["chainid","vault"], reverse="user_tx")
+    composite_key(hash, log_index)
+    vault = Required(Token, reverse="user_tx", column="token_id")
     type = Required(str)
     from_address = Required(str, column="from")
     to_address = Required(str, column="to")
@@ -43,8 +48,6 @@ class UserTx(db.Entity):
     value_usd = Required(Decimal,38,18)
     gas_used = Required(Decimal,38,1)
     gas_price = Required(Decimal,38,1)
-
-    PrimaryKey(hash,log_index)
     
 
 db.generate_mapping(create_tables=False)
