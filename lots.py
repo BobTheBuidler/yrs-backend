@@ -51,5 +51,17 @@ def unspent_lots_for_export(unspent_lots: pd.DataFrame) -> List[dict]:
     unspent_lots['gas_cost'] = unspent_lots.gas_price * unspent_lots.gas_used / Decimal(1e18)
     unspent_lots = unspent_lots.drop(columns=['gas_price','gas_used'])
     return [{
-      'test': 0,
+        "Entry Block": row.block,
+        'Entry Timestamp': row.timestamp,
+        "Entry Hash": row.hash,
+        "Type": row.type,
+        "Chainid": row.chainid,
+        "From Address": row.from_address,
+        "To Address": row.to_address,
+        "Symbol": row.symbol,
+        "Vault": row.vault,
+        "Amount": row.amount,
+        "Price": row.price,
+        "Value USD": row.value_usd,
+        "Gas Cost": row.gas_cost
     } for row in unspent_lots.itertuples()]
