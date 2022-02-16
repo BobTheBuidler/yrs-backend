@@ -10,7 +10,10 @@ from pandas._libs.tslibs.timedeltas import Timedelta
 from inputs import address_inputs, method_input
 from lots import (delete_active_lot, get_active_lot, prep_lots,
                   record_spent_lot, unspent_lots_for_export)
+from sentry import setup_sentry
 from transactions import transactions, tx_list_for_export, unique_tokens_sold
+
+setup_sentry()
 
 app = Flask(__name__)
 CORS(app)

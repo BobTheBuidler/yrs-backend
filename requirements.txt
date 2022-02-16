@@ -5,3 +5,5 @@ numpy
 pandas
 pony
 psycopg2
+sentry-sdk
+sentry-sdk[flask]
