@@ -84,19 +84,20 @@ def tx_list_for_export(_in: pd.DataFrame, _out: pd.DataFrame) -> List[dict]:
     txs['gas_cost'] = txs.gas_price * txs.gas_used / Decimal(1e18)
     txs = txs.drop(columns=['gas_price','gas_used'])
     try:
-        return pd.DataFrame([{
-            'block': row.block,
-            'hash': row.hash,
-            'timestamp': row.timestamp,
-            'vault': row.vault,
-            'symbol': row.symbol,
-            'to_address': row.to_address,
-            'from_address': row.from_address,
-            'type': row.type,
-            'amount': row.amount,
-            'price': row.price,
-            'value_usd': row.value_usd,
-            'gas': row.gas_cost,
-        } for row in txs.itertuples()]).to_dict()
+        return [{
+            'Block': row.block,
+            'Timestamp': row.timestamp,
+            'Hash': row.hash,
+            'Type': row.type,
+            'Chainid': row.chainid,
+            'From Address': row.from_address,
+            'To Address': row.to_address,
+            'Symbol': row.symbol,
+            'Vault': row.vault,
+            'Amount': row.amount,
+            'Price': row.price,
+            'Value USD': row.value_usd,
+            'Gas Cost': row.gas_cost
+        } for row in txs.itertuples()]
     except: raise Exception(txs.columns)
     
