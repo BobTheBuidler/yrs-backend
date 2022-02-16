@@ -64,15 +64,15 @@ def transactions(GOOD_ADDRESSES: List[str]) -> Tuple[pd.DataFrame, pd.DataFrame]
     
     # create DataFrames
     _in, _out = pd.DataFrame(_in), pd.DataFrame(_out)
-    _in.columns = ['timestamp','block','hash','chainid','symbol','vault','type','from_address','to_address','amount','price','value_usd','gas_used','gas_price']
-    try:
+
+    if len(_in):
+        _in.columns = ['timestamp','block','hash','chainid','symbol','vault','type','from_address','to_address','amount','price','value_usd','gas_used','gas_price']
+        _in.timestamp = pd.to_datetime(_in.timestamp,unit='s')
+    if len(_out):
         _out.columns = ['timestamp','block','hash','chainid','symbol','vault','type','from_address','to_address','amount','price','value_usd','gas_used','gas_price']
         _out = _out.sort_values(['vault','timestamp'],ascending=[True,True]).reset_index(drop=True)
-    except: pass # pass when user has no outbound txs
-  
-    _in.timestamp = pd.to_datetime(_in.timestamp,unit='s')
-    _out.timestamp = pd.to_datetime(_out.timestamp,unit='s')
-    
+        _out.timestamp = pd.to_datetime(_out.timestamp,unit='s')
+
     return _in, _out
 
 def unique_tokens_sold(tokens_out: pd.DataFrame) -> List[str]:
