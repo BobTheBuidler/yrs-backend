@@ -33,6 +33,12 @@ def yrs():
       # record all lots still unsold    
       leftover_unspent_lots = pd.concat([leftover_unspent_lots, unspent_lots]).reset_index(drop=True)
         
+    # can't jsonify int64
+    for i, event in enumerate(taxable_events):
+      for k, v in event.items():
+        if type(v) == np.int64:
+          taxable_events[i][k] = int(v)
+
     # voila
     response = jsonify({
       'taxable events': taxable_events,
