@@ -9,6 +9,8 @@ services:
     environment:
       - FLASK_APP=yrs
       - FLASK_ENV
+      - ${SENTRY_ENVIRONMENT:-development}
+      - SENTRY_RELEASE
       - DB_HOST
       - DB_PORT
       - DB_USER
