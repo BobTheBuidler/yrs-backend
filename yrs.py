@@ -22,13 +22,18 @@ def yrs():
     GOOD_ADDRESSES, BAD_ADDRESSES = address_inputs()
     _in, _out = transactions(GOOD_ADDRESSES)
     
+    if len(_in) == 0 and len(_out) == 0: return 'No transactions found for this address'
+
     taxable_events, leftover_unspent_lots = [], pd.DataFrame()
     
     for vault in unique_tokens_sold(_out):
       spent_lots, unspent_lots = prep_lots(_in, _out, vault, GOOD_ADDRESSES, METHOD)
+      assert type(unspent_lots) == pd.DataFrame, f'{type(unspent_lots)} {unspent_lots}' 
       
       # process vault
-      for row in spent_lots.itertuples(): taxable_events, unspent_lots = process_sale(row, METHOD, taxable_events, unspent_lots)
+      for row in spent_lots.itertuples():
+        taxable_events, unspent_lots = process_sale(row, METHOD, taxable_events, unspent_lots)
+        assert type(unspent_lots) == pd.DataFrame, f'{type(unspent_lots)} {unspent_lots}'
       
       # record all lots still unsold    
       leftover_unspent_lots = pd.concat([leftover_unspent_lots, unspent_lots]).reset_index(drop=True)
@@ -50,21 +55,28 @@ def yrs():
     return response
 
 
-def process_sale(row, method, unspent_lots, taxable_events):
+def process_sale(row, method: str, taxable_events, unspent_lots: pd.DataFrame):
+    assert type(unspent_lots) == pd.DataFrame is pd.DataFrame, f'{type(unspent_lots)} {unspent_lots}'
+    
     # cache these so we can manipulate them later
     sold_amount = row.amount
     sold_value_usd = row.value_usd
     sold_gas_used = row.gas_used
     
+    i = 0
     #start
     while True:
+      assert len(unspent_lots), f"No unspent lots remain. vault: {row.vault} iter: {i} hash: {row.hash} amount: {sold_amount}"
       active_lot, unspent_lots = get_active_lot(row, method, unspent_lots)
+      assert type(unspent_lots) == pd.DataFrame is pd.DataFrame, f'{type(unspent_lots)} {unspent_lots}' 
       assert active_lot.timestamp <= row.timestamp
+
       if sold_amount > active_lot.amount:
         taxable_events.append(process_portion_of_sale(sold_amount, row, active_lot))
         
         # this taxable event is not fully resolved but you used the whole active lot
         unspent_lots = delete_active_lot(unspent_lots)
+        assert type(unspent_lots) == pd.DataFrame is pd.DataFrame, f'{type(unspent_lots)} {unspent_lots}' 
         
         # you still have some tokens left to calc cost basis for
         sold_amount -= active_lot.amount
@@ -72,10 +84,12 @@ def process_sale(row, method, unspent_lots, taxable_events):
         sold_gas_used -= active_lot.gas_used
 
         # run loop again
+        i += 1
         
       else:
         taxable_events.append(process_entire_sale(sold_amount, row, active_lot, sold_value_usd, sold_gas_used))
-        record_spent_lot(unspent_lots, active_lot, sold_amount, sold_gas_used)
+        unspent_lots = record_spent_lot(unspent_lots, active_lot, sold_amount, sold_gas_used)
+        assert type(unspent_lots) == pd.DataFrame, f'{type(unspent_lots)} {unspent_lots}' 
         # on to the next one
         return taxable_events, unspent_lots
 
