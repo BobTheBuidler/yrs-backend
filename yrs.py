@@ -1,7 +1,10 @@
 from decimal import Decimal
 from typing import Tuple
 
+import numpy as np
 import pandas as pd
+from flask import Flask, jsonify
+from flask_cors import CORS
 from pandas._libs.tslibs.timedeltas import Timedelta
 
 from inputs import address_inputs, method_input
@@ -9,8 +12,12 @@ from lots import (delete_active_lot, get_active_lot, prep_lots,
                   record_spent_lot, unspent_lots_for_export)
 from transactions import transactions, tx_list_for_export, unique_tokens_sold
 
+app = Flask(__name__)
+CORS(app)
 
-def main():    
+
+@app.route("/", methods=['POST'])
+def yrs():
     METHOD = method_input()
     GOOD_ADDRESSES, BAD_ADDRESSES = address_inputs()
     _in, _out = transactions(GOOD_ADDRESSES)
@@ -27,12 +34,15 @@ def main():
       leftover_unspent_lots = pd.concat([leftover_unspent_lots, unspent_lots]).reset_index(drop=True)
         
     # voila
-    return {
-      'taxable events': pd.DataFrame(taxable_events).to_dict(),
+    response = jsonify({
+      'taxable events': taxable_events,
       'failures': BAD_ADDRESSES,
       'unspent lots': unspent_lots_for_export(leftover_unspent_lots),
       'transactions': tx_list_for_export(_in, _out),
-    }
+    })
+    response.headers.add("Access-Control-Allow-Origin", "*")
+    return response
+
 
 def process_sale(row, method, unspent_lots, taxable_events):
     # cache these so we can manipulate them later
@@ -62,7 +72,8 @@ def process_sale(row, method, unspent_lots, taxable_events):
         record_spent_lot(unspent_lots, active_lot, sold_amount, sold_gas_used)
         # on to the next one
         return taxable_events, unspent_lots
-  
+
+
 def process_portion_of_sale(sold_amount, row, active_lot):
     duration, period = get_duration(row, active_lot)
     portion_of_sale_processed = active_lot.amount / sold_amount
@@ -87,6 +98,7 @@ def process_portion_of_sale(sold_amount, row, active_lot):
         'gas to enter': round(active_lot.gas_price * active_lot.gas_used / Decimal(1e18), 6),
         'gas to exit': round((row.gas_price * row.gas_used / Decimal(1e18)) * portion_of_sale_processed, 6),
         }
+
 
 def process_entire_sale(sold_amount, row, active_lot, sold_value_usd, sold_gas_used): 
     duration, period = get_duration(row, active_lot)   
@@ -113,8 +125,8 @@ def process_entire_sale(sold_amount, row, active_lot, sold_value_usd, sold_gas_u
         'gas to exit': round(row.gas_price * sold_gas_used / Decimal(1e18),6),
         }
 
+
 def get_duration(row, active_lot) -> Tuple[Timedelta, str]:
     duration = row.timestamp - active_lot.timestamp
     period = 'long' if duration > Timedelta(days=365) else 'short'
     return duration,period
-  

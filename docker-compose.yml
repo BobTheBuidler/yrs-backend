@@ -5,9 +5,10 @@ services:
     build: .
     image: yrs-backend
     ports: 
-      - 127.0.0.1:5000:5000
+      - 5000:5000
     environment:
-      - FLASK_APP=backend
+      - FLASK_APP=yrs
+      - FLASK_ENV
       - DB_HOST
       - DB_PORT
       - DB_USER
