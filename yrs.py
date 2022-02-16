@@ -18,7 +18,6 @@ CORS(app)
 
 @app.route("/", methods=['POST'])
 def yrs():
-    METHOD = method_input()
     GOOD_ADDRESSES, BAD_ADDRESSES = address_inputs()
     _in, _out = transactions(GOOD_ADDRESSES)
     
@@ -27,12 +26,12 @@ def yrs():
     taxable_events, leftover_unspent_lots = [], pd.DataFrame()
     
     for vault in unique_tokens_sold(_out):
-      spent_lots, unspent_lots = prep_lots(_in, _out, vault, GOOD_ADDRESSES, METHOD)
+      spent_lots, unspent_lots = prep_lots(_in, _out, vault, GOOD_ADDRESSES)
       assert type(unspent_lots) == pd.DataFrame, f'{type(unspent_lots)} {unspent_lots}' 
       
       # process vault
       for row in spent_lots.itertuples():
-        taxable_events, unspent_lots = process_sale(row, METHOD, taxable_events, unspent_lots)
+        taxable_events, unspent_lots = process_sale(row, taxable_events, unspent_lots)
         assert type(unspent_lots) == pd.DataFrame, f'{type(unspent_lots)} {unspent_lots}'
       
       # record all lots still unsold    
@@ -55,7 +54,7 @@ def yrs():
     return response
 
 
-def process_sale(row, method: str, taxable_events, unspent_lots: pd.DataFrame):
+def process_sale(row, taxable_events, unspent_lots: pd.DataFrame):
     assert type(unspent_lots) == pd.DataFrame is pd.DataFrame, f'{type(unspent_lots)} {unspent_lots}'
     
     # cache these so we can manipulate them later
@@ -67,7 +66,7 @@ def process_sale(row, method: str, taxable_events, unspent_lots: pd.DataFrame):
     #start
     while True:
       assert len(unspent_lots), f"No unspent lots remain. vault: {row.vault} iter: {i} hash: {row.hash} amount: {sold_amount}"
-      active_lot, unspent_lots = get_active_lot(row, method, unspent_lots)
+      active_lot, unspent_lots = get_active_lot(row, unspent_lots)
       assert type(unspent_lots) == pd.DataFrame is pd.DataFrame, f'{type(unspent_lots)} {unspent_lots}' 
       assert active_lot.timestamp <= row.timestamp
 

@@ -4,8 +4,10 @@ from typing import List
 import numpy as np
 import pandas as pd
 
+from inputs import method_input
 
-def prep_lots(_in, _out, vault, addresses, method):
+
+def prep_lots(_in, _out, vault, addresses):
     # Filter for the vault we're on
     spent_lots = _out[_out['vault'] == vault]
     unspent_lots = _in[_in['vault'] == vault]
@@ -18,16 +20,16 @@ def prep_lots(_in, _out, vault, addresses, method):
     spent_lots = spent_lots.sort_values(by='block',ascending=True).reset_index(drop=True)
 
     # sort unspent lots according to selected method
-    unspent_lots = unspent_lots.sort_values(by='block', ascending=method == 'FIFO').reset_index(drop=True)
+    unspent_lots = unspent_lots.sort_values(by='block', ascending=method_input() == 'FIFO').reset_index(drop=True)
 
     assert type(spent_lots) == pd.DataFrame, f'{type(spent_lots)} {spent_lots}' 
     assert type(unspent_lots) == pd.DataFrame is pd.DataFrame, f'{type(unspent_lots)} {unspent_lots}' 
 
     return spent_lots,unspent_lots
 
-def get_active_lot(row, method, unspent_lots):
+def get_active_lot(row, unspent_lots):
     assert len(unspent_lots), f'No unspent lots remaining'
-    if method == 'LIFO':
+    if method_input() == 'LIFO':
       unspent_lots = unspent_lots.sort_values(by='block',ascending=False)
       temp = unspent_lots[unspent_lots['block'] >= row.block]          
       unspent_lots = unspent_lots[unspent_lots['block'] < row.block]
