@@ -13,4 +13,5 @@ All agents must follow these rules:
 7) Update dependency lockfiles when adding or removing Python dependencies.
 8) If the branch you're assigned to work on is from a remote (ie origin/master or upstream/awesome-feature) you must ensure you fetch and pull from the remote before you begin your work.
 
+9) Keep base image tags pinned.
 Reference: https://www.conventionalcommits.org/en/v1.0.0/
