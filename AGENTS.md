@@ -11,6 +11,6 @@ All agents must follow these rules:
 5) Run relevant Python tests for changes (pytest/unittest or the repo's configured runner).
 6) Follow formatting/linting configured in pyproject.toml, setup.cfg, tox.ini, or ruff.toml.
 7) Update dependency lockfiles when adding or removing Python dependencies.
-8) If the branch you're assigned to work on is from a remote (ie origin/master or upstream/awesome-feature) you must ensure you fetch and pull from the remote before you begin your work.
+8) Keep base image tags pinned.
 
 Reference: https://www.conventionalcommits.org/en/v1.0.0/
